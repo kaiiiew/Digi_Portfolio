@@ -1,0 +1,1026 @@
+/* ===== CSS RESET (trimmed) ===== */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  line-height: 1.6;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ===== THEME ===== */
+:root {
+  --bg: #0b0c10;
+  --panel: #111218;
+  --text: #e9edf1;
+  --muted: #aab0b6;
+  --accent: #7c5cff;
+  --accent-2: #20e3b2;
+  --ring: rgba(124, 92, 255, .35);
+  --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  --radius: 16px;
+  --header-height: 72px;
+  /* height reserved for fixed header */
+  color-scheme: dark;
+}
+
+.light {
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --text: #020305;
+  --muted: #2a323d;
+  --accent: #6d28d9;
+  --accent-2: #059669;
+  --ring: rgba(109, 40, 217, .2);
+  --shadow: 0 10px 30px rgba(2, 6, 23, .08);
+  color-scheme: light;
+}
+
+body {
+  background: radial-gradient(1200px 600px at 80% -10%, rgba(124, 92, 255, .07), transparent 60%), var(--bg);
+  color: var(--text);
+  padding-top: var(--header-height);
+}
+
+/* ===== LAYOUT ===== */
+.container {
+  width: min(1100px, 92%);
+  margin-inline: auto;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+section {
+  padding: 36px 0;
+  /* reduced from 72px */
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.section-header h2 {
+  font-size: clamp(1.4rem, 1rem + 1.6vw, 2rem);
+  margin: 0;
+  letter-spacing: .3px;
+}
+
+.section-header p {
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ===== NAVBAR ===== */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  z-index: 9999;
+  background: rgba(11, 12, 16, 0.6);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid color-mix(in oklab, var(--text) 12%, transparent);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 10px;
+  /* keeps left/right spacing */
+}
+
+.brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-weight: 800;
+  letter-spacing: .3px;
+}
+
+.brand .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 0 6px var(--ring);
+}
+
+nav ul {
+  display: flex;
+  gap: 18px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+nav a {
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+}
+
+nav a:hover,
+nav a.active {
+  color: var(--text);
+  background: color-mix(in oklab, var(--text) 8%, transparent);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn,
+button,
+input[type="submit"] {
+  cursor: pointer;
+  border: 0;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+
+.btn.ghost {
+  background: transparent;
+  border: 1px solid color-mix(in oklab, var(--text) 14%, transparent);
+  color: var(--text);
+  box-shadow: none;
+}
+
+/* ===== HERO ===== */
+.hero {
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: center;
+  padding: 42px 0 16px;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 1.6rem + 2.4vw, 3.2rem);
+  line-height: 1.12;
+  margin: 0 0 10px;
+}
+
+.hero p.lead {
+  color: var(--muted);
+  font-size: 1.08rem;
+  margin: 0 0 18px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.stat {
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid color-mix(in oklab, var(--text) 10%, transparent);
+  text-align: center;
+}
+
+.stat strong {
+  display: block;
+  font-size: 1.3rem;
+}
+
+.hero-card {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid color-mix(in oklab, var(--text) 10%, transparent);
+  border-radius: 28px;
+  padding: 22px;
+  overflow: hidden;
+}
+
+.hero-card::after {
+  content: "";
+  position: absolute;
+  inset: -30% -10% auto auto;
+  height: 90%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle at 70% 30%, var(--ring), transparent 60%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  padding: 3px;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 6px solid var(--panel);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--text) 10%, transparent);
+  color: var(--text);
+  font-size: .88rem;
+}
+
+/* ===== PROJECTS ===== */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0 24px;
+}
+
+.search {
+  flex: 1;
+  min-width: 220px;
+}
+
+.search input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--text) 14%, transparent);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--text) 14%, transparent);
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.chip.active {
+  color: var(--text);
+  background: color-mix(in oklab, var(--text) 10%, transparent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--panel);
+  border-radius: 18px;
+  padding: 14px;
+  border: 1px solid color-mix(in oklab, var(--text) 10%, transparent);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.thumb {
+  border-radius: 12px;
+  aspect-ratio: 16/10;
+  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 60%, black), color-mix(in oklab, var(--accent-2) 50%, black));
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: white;
+  letter-spacing: .3px;
+}
+
+.card h3 {
+  margin: 10px 0 6px;
+  font-size: 1.05rem;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .95rem;
+}
+
+.card .tags {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tiny {
+  font-size: .84rem;
+  color: var(--muted);
+}
+
+/* ===== ABOUT / SKILLS ===== */
+.about {
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: clamp(16px, 4vw, 28px);
+  align-items: start;
+}
+
+.panel {
+  background: radial-gradient(1200px 600px at 80% -10%, rgba(124, 92, 255, .07), transparent 60%), var(--panel);
+  border: 1px solid color-mix(in oklab, var(--text) 10%, transparent);
+  border-radius: var(--radius);
+  padding: 10px;
+  /* reduced from 18px */
+}
+
+.skills {
+  display: grid;
+  gap: 10px;
+}
+
+.skill {
+  display: grid;
+  gap: 6px;
+}
+
+.bar {
+  height: 10px;
+  background: color-mix(in oklab, var(--text) 12%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar>i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 999px;
+  transition: width 1.2s ease;
+}
+
+/* ===== EXPERIENCE ===== */
+.timeline {
+  position: relative;
+  padding-left: 22px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: color-mix(in oklab, var(--text) 14%, transparent);
+  border-radius: 2px;
+}
+
+.titem {
+  position: relative;
+  padding: 10px 0 10px 8px;
+}
+
+.titem::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+/* Place the purple circle inside the experience container */
+#experience .panel .titem::before {
+  left: 10px;
+  /* Move the circle inside the card */
+  top: 18px;
+  /* You can adjust left/top for perfect alignment */
+}
+
+/* Adjust padding so the circle doesn't overflow */
+#experience .panel .titem {
+  padding-left: 32px;
+  position: relative;
+}
+
+/* Make experience container vertically scrollable and show 4 items at a time */
+#experience .panel {
+  max-height: 520px;
+  /* Adjust height as needed for 4 items */
+  overflow-y: auto;
+  padding-bottom: 8px;
+  background: var(--panel);
+}
+
+/* Timeline as vertical list */
+#timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Timeline item styling */
+.titem {
+  background: var(--panel);
+  border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--text) 10%, transparent);
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
+  flex-shrink: 0;
+}
+
+/* Optional: Hide vertical timeline line if not needed */
+#timeline::before {
+  display: none;
+}
+
+/* Responsive: allow full height on mobile */
+@media (max-width: 700px) {
+  #experience .panel {
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
+/* ===== CONTACT ===== */
+
+form {
+  display: grid;
+  gap: 15px;
+}
+
+form label {
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+input,
+textarea,
+select {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid color-mix(in oklab, var(--text) 14%, transparent);
+  border-radius: 12px;
+  padding: 10px 12px;
+  width: 100%;
+  /* full width */
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+form button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+/* ===== FOOTER ===== */
+footer {
+  border-top: 1px solid var(--accent);
+  /* Remove the background property for seamless effect */
+  color: var(--muted);
+  padding: 40px 0 80px;
+  text-align: center;
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* ===== PROJECT MODAL ===== */
+/* Project Modal Layout */
+#projectModal .modal-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  padding: 24px;
+  align-items: flex-start;
+}
+
+#modalThumb.thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#modalThumb img,
+#modalThumb video {
+  max-width: 100%;
+  border-radius: 12px;
+  display: block;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+}
+
+#modalThumb video {
+  aspect-ratio: 16/9;
+  background: #222;
+}
+
+.modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+#modalDesc {
+  font-size: 1rem;
+  color: var(--text);
+  margin-bottom: 0;
+}
+
+#modalTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 0;
+}
+
+#projectModal .actions {
+  margin-top: 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+/* Project Modal: Side-by-side video and images */
+#projectModal .modal-content {
+  padding: 24px;
+}
+
+.modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.media-row {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+#modalVideo {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#modalVideo video {
+  width: 100%;
+  max-width: 520px;
+  min-width: 320px;
+  border-radius: 16px;
+  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.22);
+  display: block;
+}
+
+.media-images {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#modalMainImg img {
+  width: 100%;
+  max-width: 520px;
+  min-width: 320px;
+  border-radius: 16px;
+  margin-bottom: 0;
+  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.22);
+  display: block;
+}
+
+.thumbs-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  margin-top: 10px;
+  padding-bottom: 6px;
+}
+
+.thumbs-row img {
+  height: 80px;
+  width: auto;
+  border-radius: 10px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.14);
+}
+
+.thumbs-row img.active {
+  opacity: 1;
+  box-shadow: 0 2px 16px var(--accent);
+  border: 2px solid var(--accent);
+}
+
+/* Responsive for mobile */
+@media (max-width: 700px) {
+  #projectModal .modal-content {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 16px;
+  }
+
+  .modal-details {
+    gap: 12px;
+  }
+}
+
+/* Responsive for mobile */
+@media (max-width: 900px) {
+  .media-row {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  #modalVideo video,
+  #modalMainImg img {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .thumbs-row img {
+    height: 56px;
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+
+  .hero,
+  .about {
+    grid-template-columns: 1fr;
+  }
+
+  .hero .actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* Social icons layout */
+.social-list {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0 0;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.social-list li a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 1.08rem;
+  transition: color 0.2s;
+}
+
+.social-list li a:hover,
+.social-list li a:focus {
+  color: var(--accent);
+}
+
+.social-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  filter: grayscale(0) brightness(1);
+  transition: filter 0.2s, transform 0.2s;
+}
+
+.social-list li a:hover .social-icon,
+.social-list li a:focus .social-icon {
+  filter: drop-shadow(0 2px 8px var(--accent)) brightness(1.2);
+  transform: scale(1.12);
+}
+
+/* Add to style.css for certifications section */
+.cert-list {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr;
+}
+
+.cert-card {
+  padding: 0;
+}
+
+.cert-grid {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 24px;
+  align-items: center;
+  padding: 18px;
+}
+
+.cert-img img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
+  background: #222;
+}
+
+.cert-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.cert-info .tiny {
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+
+.cert-info p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+/* Responsive for mobile */
+@media (max-width: 700px) {
+  .cert-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .cert-img img {
+    margin: 0 auto;
+  }
+}
+
+/* ===== IMAGE MODAL ===== */
+.img-modal {
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.img-modal img {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 18px;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
+}
+
+.img-modal-close {
+  position: absolute;
+  top: 32px;
+  right: 48px;
+  font-size: 2.5rem;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  z-index: 10001;
+  user-select: none;
+}
+
+.img-modal-close:focus {
+  outline: 2px solid var(--accent);
+}
+
+/* Add to style.css for education section */
+.education-list {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 700px) {
+  .education-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Prevent brand text from overflowing the header */
+.brand {
+  flex: 0 0 auto;
+  /* don't let brand grow, allow it to shrink */
+  min-width: 0;
+  /* allow contents to be clipped in flex layout */
+  max-width: 260px;
+  /* adjust as needed */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  /* show "..." if name is too long */
+}
+
+/* Ensure nav and actions keep proper flex behavior */
+nav[aria-label="Primary"] {
+  flex: 1 1 auto;
+  /* let nav take the available space */
+  display: flex;
+  justify-content: center;
+}
+
+.actions {
+  flex: 0 0 auto;
+  /* keep action buttons their natural size */
+}
+
+/* Prevent brand text from overflowing the header
+   but allow the .dot (with its shadow) to remain visible */
+.brand {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 260px;
+  overflow: visible;
+  /* allow dot shadow to show */
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-weight: 800;
+  letter-spacing: .3px;
+}
+
+/* Constrain and ellipsize the text only */
+.brand-text {
+  display: inline-block;
+  max-width: calc(100% - 44px);
+  /* leave space for the dot + some gap; adjust if needed */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ensure dot stays properly sized and doesn't stretch */
+.brand .dot {
+  flex: 0 0 auto;
+}
+
+/* Hamburger toggle (hidden on desktop) */
+.nav-toggle {
+  display: none;
+  background: transparent;
+  border: 0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.nav-toggle .hamburger {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  position: relative;
+}
+
+.nav-toggle .hamburger::before,
+.nav-toggle .hamburger::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  transition: transform .2s ease;
+}
+
+.nav-toggle .hamburger::before {
+  top: -7px;
+}
+
+.nav-toggle .hamburger::after {
+  top: 7px;
+}
+
+/* mobile layout: show toggle, hide inline nav */
+@media (max-width: 900px) {
+  .nav-toggle {
+    display: block;
+  }
+
+  nav[aria-label="Primary"] {
+    position: absolute;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    background: var(--panel);
+    border-bottom: 1px solid color-mix(in oklab, var(--text) 6%, transparent);
+    transform-origin: top;
+    transform: scaleY(0);
+    transition: transform .18s ease, opacity .18s ease;
+    opacity: 0;
+    z-index: 9998;
+    display: block;
+  }
+
+  /* When open: dropdown visible */
+  nav[aria-label="Primary"].open {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  nav ul {
+    flex-direction: column;
+    gap: 0;
+    padding: 8px;
+  }
+
+  nav ul li {
+    margin: 6px 8px;
+  }
+
+  nav a {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  /* push .actions to the right and keep compact */
+  .actions {
+    gap: 6px;
+  }
+}
+
+/* animate hamburger to X when open (toggle class 'open' on button) */
+.nav-toggle.open .hamburger {
+  background: transparent;
+}
+
+.nav-toggle.open .hamburger::before {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle.open .hamburger::after {
+  transform: translateY(-7px) rotate(-45deg);
+}
