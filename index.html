@@ -247,15 +247,18 @@
                 <p>Let’s build something great together.</p>
             </div>
             <div class="about">
-                <form id="contactForm" class="panel" novalidate>
+                <form id="contactForm" class="panel">
                     <div>
                         <label class="tiny" for="name">Name</label>
                         <input id="name" name="name" autocomplete="name" required placeholder="Your full name" />
                     </div>
                     <div>
                         <label class="tiny" for="email">Email</label>
+                        <!-- Require addresses ending with @email.com -->
                         <input id="email" name="email" type="email" autocomplete="email" required
-                            placeholder="you@example.com" />
+                            placeholder="you@email.com"
+                            pattern="^[A-Za-z0-9._%+-]+@email\.com$"
+                            title="Please use an address that ends with @email.com" />
                     </div>
                     <div>
                         <label class="tiny" for="subject">Subject</label>

@@ -264,13 +264,40 @@ document.addEventListener("DOMContentLoaded", function () {
     event.preventDefault();
     statusEl.textContent = 'Sending…';
 
+    // Use native form validation (form no longer has novalidate)
+    if (!contactForm.checkValidity()) {
+      // Show browser validation UI and provide a short status message
+      contactForm.reportValidity();
+      statusEl.textContent = 'Please complete required fields and provide a valid email.';
+      return;
+    }
+
     const name = document.getElementById("name")?.value.trim();
     const email = document.getElementById("email")?.value.trim();
     const subject = document.getElementById("subject")?.value.trim();
     const message = document.getElementById("message")?.value.trim();
+    const emailInput = document.getElementById("email");
+
+    // Extra check: ensure the email field passes HTML validity
+    if (!emailInput || !emailInput.checkValidity()) {
+      statusEl.textContent = emailInput?.validationMessage || 'Please enter a valid email address.';
+      return;
+    }
+
+    // Enforce @email.com domain (keeps your previous requirement)
+    if (!/^[A-Za-z0-9._%+-]+@email\.com$/i.test(email)) {
+      statusEl.textContent = 'Please use an email address that ends with "@email.com".';
+      return;
+    }
 
     if (!name || !email || !subject || !message) {
       statusEl.textContent = 'Please complete all fields.';
+      return;
+    }
+
+    // Enforce @email.com domain
+    if (!/^[A-Za-z0-9._%+-]+@email\.com$/i.test(email)) {
+      statusEl.textContent = 'Please use an email address that ends with "@email.com".';
       return;
     }
 
