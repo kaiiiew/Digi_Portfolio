@@ -439,6 +439,103 @@ async function loadCertifications() {
     });
   }
 }
+// ==========================================
+// NEW: FETCH CV & PROFILE
+// ==========================================
+async function loadProfile() {
+  // 1. Fetch the profile row (we take the first one found)
+  const { data, error } = await supabase
+    .from('profile')
+    .select('cv_url, resume_url, full_name') // include resume_url
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error('Error loading profile:', error);
+    return;
+  }
+
+  // 2. Update the "Download" UI
+  const cvBtnLink = document.getElementById('downloadCV');
+  const resumeBtnLink = document.getElementById('downloadResume');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const downloadMenu = document.getElementById('downloadMenu');
+
+  const cvUrl = data?.cv_url || null;
+  const resumeUrl = data?.resume_url || null;
+
+  // Set links (if elements exist)
+  if (cvBtnLink) {
+    if (cvUrl) {
+      cvBtnLink.href = cvUrl;
+      cvBtnLink.style.display = '';
+      cvBtnLink.setAttribute('download', '');
+    } else {
+      cvBtnLink.style.display = 'none';
+    }
+  }
+
+  if (resumeBtnLink) {
+    if (resumeUrl) {
+      resumeBtnLink.href = resumeUrl;
+      resumeBtnLink.style.display = '';
+      resumeBtnLink.setAttribute('download', '');
+    } else {
+      resumeBtnLink.style.display = 'none';
+    }
+  }
+
+  // If both present -> show dropdown and keep toggle behavior
+  if (downloadBtn && downloadMenu) {
+    const both = !!cvUrl && !!resumeUrl;
+    const onlyCv = !!cvUrl && !resumeUrl;
+    const onlyResume = !!resumeUrl && !cvUrl;
+
+    // Reset state
+    downloadMenu.hidden = true;
+    downloadBtn.setAttribute('aria-expanded', 'false');
+    downloadBtn.onclick = null;
+
+    if (both) {
+      // keep dropdown behavior
+      downloadBtn.textContent = 'Download ▾';
+      downloadBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = downloadMenu.hidden;
+        downloadMenu.hidden = !open;
+        downloadBtn.setAttribute('aria-expanded', String(open));
+      });
+
+      // close when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!downloadMenu.hidden && !downloadMenu.contains(e.target) && e.target !== downloadBtn) {
+          downloadMenu.hidden = true;
+          downloadBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    } else if (onlyCv) {
+      // single CV -> make main button download CV immediately
+      downloadBtn.textContent = 'Download CV';
+      downloadBtn.addEventListener('click', () => {
+        if (cvBtnLink && cvBtnLink.href) window.location.href = cvBtnLink.href;
+      });
+    } else if (onlyResume) {
+      downloadBtn.textContent = 'Download Resume';
+      downloadBtn.addEventListener('click', () => {
+        if (resumeBtnLink && resumeBtnLink.href) window.location.href = resumeBtnLink.href;
+      });
+    } else {
+      // nothing available -> hide dropdown
+      downloadBtn.style.display = 'none';
+    }
+  }
+
+  // Optional: update full name if provided
+  if (data?.full_name) {
+    const brandText = document.querySelector('.brand-text');
+    if (brandText) brandText.textContent = data.full_name;
+  }
+}
 
 // ==========================================
 // 9. INITIALIZE
@@ -448,3 +545,4 @@ loadProjects();
 loadSkills();
 loadExperience();
 loadCertifications();
+loadProfile();

@@ -1024,3 +1024,37 @@ nav[aria-label="Primary"] {
 .nav-toggle.open .hamburger::after {
   transform: translateY(-7px) rotate(-45deg);
 }
+
+/* ===== DOWNLOAD MENU ===== */
+.download-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.download-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: var(--panel);
+  border: 1px solid color-mix(in oklab, var(--text) 10%, transparent);
+  border-radius: 12px;
+  padding: 8px;
+  min-width: 160px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  z-index: 99999;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px 12px;
+  color: var(--text);
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background: color-mix(in oklab, var(--text) 8%, transparent);
+  color: var(--accent);
+}

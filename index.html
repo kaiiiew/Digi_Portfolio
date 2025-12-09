@@ -47,7 +47,15 @@
             </nav>
             <div class="actions">
                 <button id="themeToggle" class="btn ghost" aria-label="Toggle theme">🌙</button>
-                <a class="btn" href="file/CV.pdf" id="downloadCV" download>Download CV</a>
+
+                <!-- Download dropdown: will be populated/controlled by main.js -->
+                <div class="download-dropdown">
+                  <button id="downloadBtn" class="btn" aria-haspopup="true" aria-expanded="false">Download ▾</button>
+                  <div id="downloadMenu" class="download-menu" role="menu" hidden>
+                    <a id="downloadCV" class="dropdown-item" role="menuitem" href="#" download>CV</a>
+                    <a id="downloadResume" class="dropdown-item" role="menuitem" href="#" download>Resume</a>
+                  </div>
+                </div>
             </div>
         </div>
     </header>
