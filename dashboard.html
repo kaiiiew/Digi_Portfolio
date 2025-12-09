@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Kyle Adrian N. Centeno</title>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg:#07101a;
+      --panel:#0f1116;
+      --muted:#9aa6b2;
+      --text:#e6eef6;
+      --accent:#7c4dff;
+      --accent-2:#06b6d4;
+      --border: rgba(255,255,255,0.05);
+    }
+
+    /* Base Setup */
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+    body{display:flex;overflow:hidden}
+
+    /* Animated Background */
+    .scene { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .vignette{ position:absolute; inset:0; background: radial-gradient(circle at center, transparent 0%, #07101a 100%); mix-blend-mode: multiply; }
+    .blob{ position:absolute; border-radius:50%; filter:blur(60px); opacity:0.6; mix-blend-mode:screen; animation: float 10s ease-in-out infinite; }
+    .blob.b1{ width:600px;height:600px; left:-10%; top:-10%; background:linear-gradient(135deg, var(--accent), transparent); animation-duration:15s; }
+    .blob.b2{ width:500px;height:500px; right:-5%; bottom:-10%; background:linear-gradient(135deg, var(--accent-2), transparent); animation-duration:12s; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+
+    /* SIDEBAR */
+    .sidebar {
+      z-index: 10; width: 260px;
+      background: rgba(7, 16, 26, 0.7); backdrop-filter: blur(12px) saturate(120%);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; gap: 8px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-left: 8px; }
+    .brand-logo { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: grid; place-items: center; color: white; font-weight: 800; font-size: 1.1rem; box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25); }
+    .brand-text { font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: -0.02em; }
+    
+    .nav-btn { width: 100%; background: transparent; border: 0; color: var(--muted); padding: 12px 16px; border-radius: 12px; cursor: pointer; text-align: left; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.03); color: var(--text); transform: translateX(4px); }
+    .nav-btn.active { background: linear-gradient(90deg, rgba(124,58,237,0.15), rgba(6,182,212,0.05)); color: white; border-left: 3px solid var(--accent); border-radius: 4px 12px 12px 4px; }
+    .nav-btn.logout { margin-top: auto; background: rgba(255, 77, 77, 0.08); color: #ff6b6b; border: 1px solid rgba(255, 77, 77, 0.1); justify-content: center; text-align: center; }
+    .nav-btn.logout:hover { background: #ff6b6b; color: white; transform: translateY(-2px); }
+
+    /* MAIN CONTENT */
+    .main { z-index: 5; flex: 1; padding: 32px; overflow-y: auto; position: relative; }
+    h2 { margin: 0 0 24px 0; font-size: 1.5rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+    .user-badge { font-size: 0.9rem; font-weight: 500; color: var(--muted); background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+
+    .section { display: none; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .section.active { display: block; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Stats Grid */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .stat-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 5px; transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.1); }
+    .stat-number { font-size: 2.2rem; font-weight: 800; background: linear-gradient(to right, #fff, #aaa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .stat-label { color: var(--muted); font-size: 0.9rem; font-weight: 500; }
+
+    /* Lists */
+    .overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+    .card h3 { margin-top: 0; font-size: 1.1rem; color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; }
+
+    .list-item { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.015); padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1px solid transparent; transition: 0.2s; }
+    .list-item:hover { border-color: rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); }
+    .thumb { width: 48px; height: 48px; border-radius: 8px; background: #000; object-fit: cover; border: 1px solid var(--border); }
+    .info { flex: 1; min-width: 0; }
+    .title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+    .sub { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+    /* Forms */
+    input, textarea, select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 12px 16px; margin-bottom: 16px; border-radius: 10px; outline: none; font-family: inherit; font-size: 0.95rem; transition: border-color 0.2s; }
+    input:focus, textarea:focus { border-color: var(--accent); background: rgba(0,0,0,0.5); }
+    label { font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 8px; font-weight: 600; }
+    
+    /* --- MODERN UPLOAD UI --- */
+    .upload-group {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+    .upload-group:hover { border-color: var(--accent); }
+
+    .upload-row { display: flex; gap: 10px; align-items: center; }
+
+    /* Read-only URL input */
+    .url-input {
+      flex: 1;
+      background: transparent !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      color: var(--muted) !important;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    /* Hidden file input */
+    input[type="file"] { display: none; }
+
+    /* Custom Button */
+    .file-label {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(124, 58, 237, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 700;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .file-label:hover { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); }
+    .file-label i { font-style: normal; }
+
+    /* Status Text */
+    .file-status { font-size: 0.8rem; color: #a7f3d0; margin-top: 4px; display: none; font-weight: 500; }
+    .file-status.active { display: block; }
+
+    .btn { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; font-size: 0.9rem; transition: 0.2s; }
+    .btn-primary { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: white; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4); }
+    .btn-danger { background: rgba(255, 77, 77, 0.1); color: #ff6b6b; border: 1px solid rgba(255,77,77,0.2); }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+    .modal.open { display: flex; animation: fadeIn 0.2s; }
+    .modal-content { background: #11141d; width: 550px; max-width: 94%; max-height: 90vh; overflow-y: auto; padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  </style>
+</head>
+<body>
+
+  <div class="scene" aria-hidden="true">
+    <div class="vignette"></div>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">KA</div>
+      <div class="brand-text">Admin Panel</div>
+    </div>
+    
+    <button class="nav-btn active" data-tab="overview">Overview</button>
+    <button class="nav-btn" data-tab="profile">Profile</button>
+    <button class="nav-btn" data-tab="projects">Projects</button>
+    <button class="nav-btn" data-tab="skills">Skills</button>
+    <button class="nav-btn" data-tab="experience">Experience</button>
+    <button class="nav-btn" data-tab="certifications">Certifications</button>
+    
+    <button class="nav-btn logout" id="logoutBtn">Logout</button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    
+    <!-- 1. OVERVIEW -->
+    <section id="overview" class="section active">
+      <h2>Dashboard Overview <span class="user-badge">Welcome, Admin</span></h2>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-number" id="count-msg">-</div>
+          <div class="stat-label">Messages</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="count-proj">-</div>
+          <div class="stat-label">Projects</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="count-cert">-</div>
+          <div class="stat-label">Certificates</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="count-exp">-</div>
+          <div class="stat-label">Experience</div>
+        </div>
+      </div>
+      <div class="overview-grid">
+        <div class="card">
+          <h3>Recent Projects</h3>
+          <div id="overview-proj">Loading...</div>
+        </div>
+        <div class="card">
+          <h3>Recent Messages</h3>
+          <div id="overview-msg">Loading...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. PROFILE -->
+    <section id="profile" class="section">
+      <h2>Edit Profile</h2>
+      <div class="card">
+        <input type="hidden" id="prof-id">
+        <label>Full Name</label><input type="text" id="prof-name">
+        
+        <!-- CV Upload -->
+        <label>CV (PDF)</label>
+        <div class="upload-group">
+          <div class="upload-row">
+            <input type="text" id="prof-cv" class="url-input" placeholder="No CV uploaded..." readonly>
+            <label for="prof-cv-file" class="file-label"><i>📄</i> Upload PDF</label>
+            <input type="file" id="prof-cv-file" accept=".pdf" onchange="handleFileSelect(this, 'cv-status')">
+          </div>
+          <div id="cv-status" class="file-status"></div>
+        </div>
+
+        <!-- Resume Upload -->
+        <label>Resume (PDF)</label>
+        <div class="upload-group">
+          <div class="upload-row">
+            <input type="text" id="prof-resume" class="url-input" placeholder="No Resume uploaded..." readonly>
+            <label for="prof-resume-file" class="file-label"><i>📄</i> Upload PDF</label>
+            <input type="file" id="prof-resume-file" accept=".pdf" onchange="handleFileSelect(this, 'res-status')">
+          </div>
+          <div id="res-status" class="file-status"></div>
+        </div>
+
+        <label>Button Label</label><input type="text" id="prof-label" placeholder="Download CV">
+        
+        <div style="display:flex; gap:10px; margin-top:10px">
+          <button class="btn btn-primary" id="profSaveBtn" onclick="saveProfile()">Save Changes</button>
+          <button class="btn" style="background:#333; color:white;" onclick="loadAllData()">Refresh Data</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. PROJECTS -->
+    <section id="projects" class="section">
+      <h2>Projects <button class="btn btn-primary btn-sm" onclick="openModal('project')">+ Add New</button></h2>
+      <div id="proj-list"></div>
+    </section>
+
+    <!-- 4. SKILLS -->
+    <section id="skills" class="section">
+      <h2>Skills <button class="btn btn-primary btn-sm" onclick="openModal('skill')">+ Add New</button></h2>
+      <div id="skill-list"></div>
+    </section>
+
+    <!-- 5. EXPERIENCE -->
+    <section id="experience" class="section">
+      <h2>Experience <button class="btn btn-primary btn-sm" onclick="openModal('exp')">+ Add New</button></h2>
+      <div id="exp-list"></div>
+    </section>
+
+    <!-- 6. CERTIFICATIONS -->
+    <section id="certifications" class="section">
+      <h2>Certifications <button class="btn btn-primary btn-sm" onclick="openModal('cert')">+ Add New</button></h2>
+      <div id="cert-list"></div>
+    </section>
+
+  </main>
+
+  <!-- MODAL -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle" style="border:0; margin-bottom:10px;">Edit Item</h2>
+      <div id="modalForm"></div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px">
+        <button class="btn" style="background:transparent; border:1px solid #444; color:white;" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="modalSaveBtn">Save Item</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- SUPABASE ---
+    const supabaseUrl = 'https://rvquihhxbazfwfhlgmny.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2cXVpaGh4YmF6ZndmaGxnbW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNjAzMTYsImV4cCI6MjA4MDgzNjMxNn0.KtnjjfXbqrx35MrDB62dApBcOhQEdKhAPNxMG-QTv1g';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // --- AUTH ---
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) window.location.href = 'login.html';
+      else loadAllData();
+    }
+    checkAuth();
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    });
+
+    // --- NAVIGATION ---
+    const btns = document.querySelectorAll('.nav-btn[data-tab]');
+    const sections = document.querySelectorAll('.section');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        sections.forEach(s => s.classList.remove('active'));
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // --- DATA LOADING ---
+    async function loadAllData() {
+      try {
+        const [msg, proj, cert, skills, exp, prof] = await Promise.all([
+          supabase.from('messages').select('*').order('created_at', { ascending: false }),
+          supabase.from('projects').select('*').order('created_at', { ascending: false }),
+          supabase.from('certifications').select('*').order('created_at', { ascending: false }),
+          supabase.from('skills').select('*').order('level', { ascending: false }),
+          supabase.from('experience').select('*').order('created_at', { ascending: false }),
+          supabase.from('profile').select('*').limit(1).single()
+        ]);
+
+        updateCount('count-msg', msg.data);
+        updateCount('count-proj', proj.data);
+        updateCount('count-cert', cert.data);
+        updateCount('count-exp', exp.data);
+
+        renderList('overview-msg', (msg.data||[]).slice(0,3), 'name', 'subject');
+        renderList('overview-proj', (proj.data||[]).slice(0,3), 'title', 'category', 'image_urls');
+
+        renderEditList('proj-list', proj.data, 'title', 'project', 'image_urls');
+        renderEditList('cert-list', cert.data, 'title', 'cert', 'image_url');
+        renderEditList('skill-list', skills.data, 'name', 'skill');
+        renderEditList('exp-list', exp.data, 'role', 'exp');
+
+        if (prof.data) {
+          const p = prof.data;
+          document.getElementById('prof-id').value = p.id || '';
+          document.getElementById('prof-name').value = p.full_name || '';
+          document.getElementById('prof-cv').value = p.cv_url || '';
+          document.getElementById('prof-resume').value = p.resume_url || '';
+          document.getElementById('prof-label').value = p.button_label || '';
+        }
+      } catch (err) { console.error(err); }
+    }
+
+    // --- HELPERS ---
+    function updateCount(id, data) { document.getElementById(id).innerText = data ? data.length : 0; }
+
+    function renderList(id, data, tKey, sKey, iKey) {
+      const container = document.getElementById(id);
+      if(!data || !data.length) { container.innerHTML = '<div style="color:#666;font-style:italic">No items</div>'; return; }
+      container.innerHTML = data.map(item => {
+        let img = '';
+        if(iKey) {
+          const src = Array.isArray(item[iKey]) ? item[iKey][0] : item[iKey];
+          if(src) img = `<img src="${src}" class="thumb">`; else img = `<div class="thumb"></div>`;
+        }
+        return `<div class="list-item">${img}<div class="info"><div class="title">${item[tKey]}</div><div class="sub">${item[sKey] || ''}</div></div></div>`;
+      }).join('');
+    }
+
+    function renderEditList(id, data, tKey, type, iKey) {
+      const container = document.getElementById(id);
+      if(!data || !data.length) { container.innerHTML = '<div style="color:#666">No items</div>'; return; }
+      container.innerHTML = data.map(item => {
+        let img = '';
+        if(iKey) {
+          const src = Array.isArray(item[iKey]) ? item[iKey][0] : item[iKey];
+          if(src) img = `<img src="${src}" class="thumb">`;
+        }
+        return `
+          <div class="list-item">
+            ${img}
+            <div class="info"><div class="title">${item[tKey]}</div><div class="sub">ID: ${item.id}</div></div>
+            <div style="display:flex; gap:8px">
+              <button class="btn btn-primary btn-sm" onclick='openModal("${type}", ${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
+              <button class="btn btn-danger btn-sm" onclick='deleteItem("${type}", ${item.id})'>Delete</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // --- UPLOAD HELPER ---
+    async function uploadFile(file) {
+      const fileName = `uploads/${Date.now()}_${file.name.replace(/\s/g,'_')}`;
+      const { data, error } = await supabase.storage.from('files').upload(fileName, file);
+      if(error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('files').getPublicUrl(fileName);
+      return publicUrl;
+    }
+
+    // --- FILE SELECTION VISUAL ---
+    function handleFileSelect(input, statusId) {
+      const statusEl = document.getElementById(statusId);
+      if (input.files && input.files[0]) {
+        statusEl.innerText = `Selected: ${input.files[0].name}`;
+        statusEl.classList.add('active');
+      } else {
+        statusEl.classList.remove('active');
+      }
+    }
+
+    // --- MODAL & FORM ---
+    const modal = document.getElementById('editModal');
+    const modalForm = document.getElementById('modalForm');
+    let currentType = null;
+    let currentId = null;
+
+    window.openModal = function(type, item = null) {
+      currentType = type; currentId = item ? item.id : null;
+      document.getElementById('modalTitle').innerText = item ? `Edit ${type}` : `Add New ${type}`;
+      modalForm.innerHTML = getForm(type, item || {});
+      modal.classList.add('open');
+    }
+    window.closeModal = function() { modal.classList.remove('open'); }
+
+    // Helper to create the Upload UI inside Modal
+    function makeUploadHTML(id, currentVal) {
+      return `
+        <label>Image / File</label>
+        <div class="upload-group">
+          <div class="upload-row">
+            <input id="${id}-img" class="url-input" value="${currentVal}" placeholder="No file uploaded yet..." readonly>
+            <label for="${id}-file" class="file-label"><i>📂</i> Upload New</label>
+            <input type="file" id="${id}-file" accept="image/*" onchange="handleFileSelect(this, '${id}-status')">
+          </div>
+          <div id="${id}-status" class="file-status"></div>
+        </div>
+      `;
+    }
+
+    function getForm(type, d) {
+      const val = k => d[k] || '';
+      
+      if(type === 'project') {
+         const img = (d.image_urls && d.image_urls.length) ? d.image_urls[0] : '';
+         return `
+           <label>Title</label><input id="i-title" value="${val('title')}">
+           <label>Description</label><textarea id="i-desc" rows="3">${val('description')}</textarea>
+           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+             <div><label>Category</label><input id="i-cat" value="${val('category')}"></div>
+             <div><label>Tags</label><input id="i-tags" value="${(d.tags||[]).join(', ')}"></div>
+           </div>
+           
+           ${makeUploadHTML('i', img)}
+
+           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+             <div><label>Live Link</label><input id="i-live" value="${val('live_url')}"></div>
+             <div><label>Code Link</label><input id="i-code" value="${val('code_url')}"></div>
+           </div>
+         `;
+      }
+      if(type === 'skill') return `<label>Name</label><input id="i-name" value="${val('name')}"><label>Level %</label><input id="i-level" type="number" value="${val('level')||0}">`;
+      if(type === 'exp') return `<label>Role</label><input id="i-role" value="${val('role')}"><label>Org</label><input id="i-org" value="${val('organization')}"><label>Years</label><input id="i-year" value="${val('year_range')}"><label>Bullets</label><textarea id="i-bull" rows="4">${(d.bullets||[]).join('\n')}</textarea>`;
+      if(type === 'cert') {
+         return `
+           <label>Title</label><input id="i-title" value="${val('title')}">
+           <label>Subtitle</label><input id="i-sub" value="${val('subtitle')}">
+           <label>Description</label><textarea id="i-desc" rows="3">${val('description')}</textarea>
+           
+           ${makeUploadHTML('i', val('image_url'))}
+         `;
+      }
+    }
+
+    document.getElementById('modalSaveBtn').onclick = async function() {
+      const btn = this;
+      btn.innerText = 'Saving...';
+      
+      try {
+        let table = '', payload = {};
+        
+        // Handle File Upload for Modal Items
+        let finalImg = document.getElementById('i-img') ? document.getElementById('i-img').value : '';
+        const fileInput = document.getElementById('i-file');
+        if(fileInput && fileInput.files.length > 0) {
+           btn.innerText = 'Uploading...';
+           finalImg = await uploadFile(fileInput.files[0]);
+        }
+
+        if(currentType === 'project') {
+          table = 'projects';
+          payload = {
+            title: document.getElementById('i-title').value,
+            description: document.getElementById('i-desc').value,
+            category: document.getElementById('i-cat').value,
+            tags: document.getElementById('i-tags').value.split(',').map(s=>s.trim()),
+            image_urls: [finalImg],
+            live_url: document.getElementById('i-live').value,
+            code_url: document.getElementById('i-code').value
+          };
+        } else if(currentType === 'skill') {
+          table = 'skills';
+          payload = { name: document.getElementById('i-name').value, level: parseInt(document.getElementById('i-level').value) };
+        } else if(currentType === 'exp') {
+          table = 'experience';
+          payload = {
+            role: document.getElementById('i-role').value,
+            organization: document.getElementById('i-org').value,
+            year_range: document.getElementById('i-year').value,
+            bullets: document.getElementById('i-bull').value.split('\n').filter(s=>s.trim())
+          };
+        } else if(currentType === 'cert') {
+          table = 'certifications';
+          payload = {
+            title: document.getElementById('i-title').value,
+            subtitle: document.getElementById('i-sub').value,
+            description: document.getElementById('i-desc').value,
+            image_url: finalImg
+          };
+        }
+
+        const { error } = currentId ? await supabase.from(table).update(payload).eq('id', currentId) : await supabase.from(table).insert([payload]);
+        if(error) throw error;
+        
+        closeModal(); loadAllData();
+      } catch(e) { alert(e.message); } 
+      finally { btn.innerText = 'Save Item'; }
+    };
+
+    window.deleteItem = async (type, id) => {
+      if(!confirm('Delete?')) return;
+      const table = type === 'project' ? 'projects' : type === 'skill' ? 'skills' : type === 'exp' ? 'experience' : 'certifications';
+      await supabase.from(table).delete().eq('id', id);
+      loadAllData();
+    };
+
+    // --- SAVE PROFILE WITH UPLOAD ---
+    window.saveProfile = async () => {
+      const btn = document.getElementById('profSaveBtn');
+      btn.innerText = 'Saving...';
+      try {
+        const id = document.getElementById('prof-id').value;
+        let cvUrl = document.getElementById('prof-cv').value;
+        let resUrl = document.getElementById('prof-resume').value;
+
+        // Check for CV upload
+        const cvFile = document.getElementById('prof-cv-file');
+        if(cvFile.files.length > 0) {
+           btn.innerText = 'Uploading CV...';
+           cvUrl = await uploadFile(cvFile.files[0]);
+        }
+
+        // Check for Resume upload
+        const resFile = document.getElementById('prof-resume-file');
+        if(resFile.files.length > 0) {
+           btn.innerText = 'Uploading Resume...';
+           resUrl = await uploadFile(resFile.files[0]);
+        }
+
+        const updates = {
+          full_name: document.getElementById('prof-name').value,
+          cv_url: cvUrl,
+          resume_url: resUrl,
+          button_label: document.getElementById('prof-label').value
+        };
+
+        let res;
+        if(id) res = await supabase.from('profile').update(updates).eq('id', id);
+        else res = await supabase.from('profile').insert([updates]);
+
+        if(res.error) throw res.error;
+        alert('Profile Updated!');
+        loadAllData();
+      } catch(e) { alert(e.message); }
+      finally { btn.innerText = 'Save Changes'; }
+    };
+  </script>
+</body>
+</html>

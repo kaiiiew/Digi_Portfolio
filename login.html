@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Login — Kyle Adrian N. Centeno</title>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg:#07101a;
+      --panel:#0d1720;
+      --muted:#9aa6b2;
+      --text:#e6eef6;
+      --accent:#7c3aed;
+      --accent-2:#06b6d4;
+    }
+
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:var(--text);background:var(--bg);display:flex;align-items:center;justify-content:center}
+
+    /* animated background blobs */
+    .scene {
+      position:fixed; inset:0; overflow:hidden; z-index:0;
+      background: radial-gradient(1200px 700px at 10% 10%, rgba(124,58,237,0.06), transparent 12%),
+                  radial-gradient(900px 500px at 90% 90%, rgba(6,182,212,0.04), transparent 12%);
+    }
+    .blob {
+      position:absolute; filter: blur(48px); opacity:0.9; mix-blend-mode: screen;
+      transform-origin:center;
+      animation: float 8s ease-in-out infinite;
+    }
+    .blob.b1{ width:520px;height:520px; left:-8%; top:-6%; background:linear-gradient(135deg, rgba(124,58,237,0.35), rgba(6,182,212,0.18)); animation-duration:14s; }
+    .blob.b2{ width:420px;height:420px; right:-6%; bottom:-8%; background:linear-gradient(135deg, rgba(6,182,212,0.26), rgba(124,58,237,0.12)); animation-duration:10s; animation-delay:1s; }
+    .blob.b3{ width:260px;height:260px; left:18%; bottom:-4%; background:linear-gradient(135deg, rgba(255,120,120,0.08), rgba(124,58,237,0.08)); animation-duration:12s; animation-delay:2s; opacity:0.7 }
+    @keyframes float {
+      0%{ transform: translateY(0) rotate(0deg) scale(1) }
+      50%{ transform: translateY(-18px) rotate(6deg) scale(1.02) }
+      100%{ transform: translateY(0) rotate(0deg) scale(1) }
+    }
+
+    /* login layout */
+    .login-wrap { position:relative; z-index:5; width:100%; max-width:980px; padding:60px 20px; display:flex; align-items:center; justify-content:center; min-height:100vh; box-sizing:border-box; }
+    .login-card {
+      width:100%; max-width:460px; position:relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:16px; padding:28px; box-shadow: 0 18px 60px rgba(1,6,15,0.7); border:1px solid rgba(255,255,255,0.03);
+      transition: transform 280ms cubic-bezier(.2,.9,.2,1), box-shadow 280ms;
+      will-change: transform;
+      overflow:visible;
+      backdrop-filter: blur(6px) saturate(120%);
+    }
+
+    .login-brand{ display:flex; gap:12px; align-items:center; margin-bottom:16px; }
+    .login-logo{ width:48px;height:48px;border-radius:10px; display:grid; place-items:center; font-weight:800; color:white; background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 8px 30px rgba(76,0,128,0.12); }
+    .login-title{ margin:0; font-size:1.05rem; font-weight:800; color:var(--text); }
+    .login-sub{ margin:0; color:var(--muted); font-size:.92rem; }
+
+    .field{ margin-bottom:14px; }
+    .field label{ display:block; margin-bottom:8px; font-weight:700; color:var(--muted); font-size:13px; }
+
+    .input-wrapper{ position:relative; }
+    
+    /* FIX HERE: Added input[type="text"] so style persists when password is shown */
+    input[type="email"], input[type="password"], input[type="text"] {
+      width:100%; padding:14px 46px 14px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(6,12,18,0.35);
+      color:var(--text); font-size:15px; outline:none; transition: box-shadow .18s, border-color .18s, transform .18s;
+      box-sizing: border-box;
+    }
+    input::placeholder{ color:rgba(230,237,243,0.18); }
+
+    input:focus{
+      box-shadow: 0 6px 30px rgba(124,58,237,0.08), 0 3px 12px rgba(6,182,212,0.04);
+      border-color: rgba(124,58,237,0.6);
+      transform: translateY(-1px);
+    }
+
+    .eye { 
+      position:absolute; 
+      right:8px; 
+      top:50%; 
+      transform:translateY(-50%); 
+      display:inline-flex; 
+      align-items:center; 
+      justify-content:center; 
+      width:36px; 
+      height:36px; 
+      border-radius:8px; 
+      background:transparent; 
+      border:0; 
+      color:var(--muted); 
+      cursor:pointer; 
+      transition: color .14s, background .14s;
+      z-index: 10;
+    }
+    .eye:hover{ color:var(--accent); background: rgba(124,58,237,0.04); }
+    .eye:focus { outline: none; }
+    .eye svg{ display:block }
+
+    .login-actions{ margin-top:12px; display:flex; gap:10px; align-items:center; }
+    .btn{
+      width:100%; display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:12px 16px; font-weight:700; border-radius:12px; border:0; cursor:pointer;
+      background: linear-gradient(90deg,var(--accent),var(--accent-2)); color:white; box-shadow: 0 8px 30px rgba(76,0,144,0.12); transition: transform .12s;
+      position:relative; overflow:hidden;
+    }
+    .btn:active{ transform:translateY(1px); }
+    .btn[disabled]{ opacity:0.7; cursor:not-allowed; }
+
+    .ripple { position:absolute; border-radius:50%; transform:scale(0); background: rgba(255,255,255,0.12); pointer-events:none; }
+
+    .login-aux{ margin-top:12px; text-align:center; color:var(--muted); font-size:13px; }
+
+    #login-msg{ margin-top:10px; text-align:center; min-height:20px; color: #ff9b9b; font-weight:600; }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @media (max-width:520px){
+      .login-wrap{ padding:28px 12px; }
+      .login-card{ padding:20px; border-radius:12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" aria-hidden="true">
+    <div class="blob b1" role="presentation"></div>
+    <div class="blob b2" role="presentation"></div>
+    <div class="blob b3" role="presentation"></div>
+  </div>
+
+  <main class="login-wrap container">
+    <section class="login-card panel" aria-labelledby="login-title" id="card" role="region">
+      <div class="login-brand">
+        <div class="login-logo" aria-hidden="true">KC</div>
+        <div>
+          <h1 id="login-title" class="login-title">Admin Login</h1>
+          <p class="login-sub">Manage projects, uploads and messages</p>
+        </div>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <div class="input-wrapper">
+            <input id="email" type="email" autocomplete="username" placeholder="admin@example.com" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+            <button type="button" class="eye" id="togglePwd" aria-pressed="false" title="Show password">
+              <!-- Open Eye -->
+              <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <!-- Slashed Eye -->
+              <svg class="icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:none" aria-hidden="true">
+                <path d="M17.94 17.94A10.97 10.97 0 0 1 12 19c-7 0-11-7-11-7a21.86 21.86 0 0 1 5.06-5.94"></path>
+                <path d="M1 1l22 22"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="login-actions">
+          <button id="loginBtn" class="btn" type="submit" aria-busy="false">
+            <span class="btn-text">Sign in</span>
+            <span class="spinner" aria-hidden="true" style="display:none;width:14px;height:14px;margin-left:8px;border:2px solid rgba(255,255,255,0.14);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;"></span>
+          </button>
+        </div>
+
+        <p class="login-aux">© <span id="year"></span> Kyle Adrian N. Centeno</p>
+        <div id="login-msg" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    function rippleEffect(e, btn) {
+      const rect = btn.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height) * 1.2;
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      const el = document.createElement('span');
+      el.className = 'ripple';
+      el.style.width = el.style.height = size + 'px';
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      btn.appendChild(el);
+      requestAnimationFrame(()=> el.style.transform = 'scale(1)');
+      setTimeout(()=> el.remove(), 500);
+    }
+
+    const toggle = document.getElementById('togglePwd');
+    const pwd = document.getElementById('password');
+    const eye = toggle.querySelector('.icon-eye');
+    const eyeOff = toggle.querySelector('.icon-eye-off');
+    
+    toggle.addEventListener('click', (e) => {
+      e.preventDefault(); 
+      e.stopPropagation(); 
+      
+      const hidden = pwd.type === 'password';
+      pwd.type = hidden ? 'text' : 'password';
+      
+      toggle.setAttribute('aria-pressed', String(hidden));
+      
+      if (eye && eyeOff) {
+        eye.style.display = hidden ? 'none' : 'block';
+        eyeOff.style.display = hidden ? 'block' : 'none';
+      }
+      
+      toggle.title = hidden ? 'Hide password' : 'Show password';
+    });
+
+    const card = document.getElementById('card');
+    card.addEventListener('mousemove', (ev) => {
+      const r = card.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const cy = r.top + r.height/2;
+      const dx = (ev.clientX - cx) / r.width;
+      const dy = (ev.clientY - cy) / r.height;
+      const rx = dy * -6; 
+      const ry = dx * 10; 
+      card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`;
+    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+
+    const supabaseUrl = 'https://rvquihhxbazfwfhlgmny.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2cXVpaGh4YmF6ZndmaGxnbW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNjAzMTYsImV4cCI6MjA4MDgzNjMxNn0.KtnjjfXbqrx35MrDB62dApBcOhQEdKhAPNxMG-QTv1g';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const form = document.getElementById('loginForm');
+    const msg = document.getElementById('login-msg');
+    const loginBtn = document.getElementById('loginBtn');
+    const btnText = loginBtn.querySelector('.btn-text');
+    const spinner = loginBtn.querySelector('.spinner');
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    loginBtn.addEventListener('click', (ev) => {
+      rippleEffect(ev, loginBtn);
+    });
+
+    async function checkSession(){
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) window.location.href = 'dashboard.html';
+      } catch(e) { /* ignore */ }
+    }
+    checkSession();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      msg.style.color = '#ff9b9b';
+
+      const email = document.getElementById('email').value.trim();
+      const password = pwd.value;
+
+      if (!email || !password) {
+        msg.textContent = 'Please enter both email and password.';
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.setAttribute('aria-busy','true');
+      btnText.textContent = 'Signing in…';
+      spinner.style.display = 'block';
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          msg.textContent = error.message || 'Login failed.';
+          loginBtn.disabled = false;
+          btnText.textContent = 'Sign in';
+          spinner.style.display = 'none';
+          loginBtn.setAttribute('aria-busy','false');
+          return;
+        }
+        msg.style.color = '#a7f3d0';
+        msg.textContent = 'Welcome — redirecting…';
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        console.error(err);
+        msg.textContent = 'An unexpected error occurred.';
+        loginBtn.disabled = false;
+        btnText.textContent = 'Sign in';
+        spinner.style.display = 'none';
+        loginBtn.setAttribute('aria-busy','false');
+      }
+    });
+  </script>
+</body>
+</html>
