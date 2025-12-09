@@ -250,7 +250,7 @@
     async function checkSession(){
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) window.location.href = 'dashboard.html';
+        if (session) window.location.href = '/dashboard';
       } catch(e) { /* ignore */ }
     }
     checkSession();
@@ -285,7 +285,7 @@
         }
         msg.style.color = '#a7f3d0';
         msg.textContent = 'Welcome — redirecting…';
-        window.location.href = 'dashboard.html';
+        window.location.href = '/dashboard';
       } catch (err) {
         console.error(err);
         msg.textContent = 'An unexpected error occurred.';
