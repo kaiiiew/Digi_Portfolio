@@ -536,6 +536,147 @@ async function loadProfile() {
     if (brandText) brandText.textContent = data.full_name;
   }
 }
+// ==========================================
+// 8a. WEATHER WIDGET (Current + Forecast)
+// ==========================================
+async function loadWeather() {
+    const container = document.getElementById('weather-container');
+    if (!container) return;
+
+    // Default: Manila
+    let lat = 14.5995;
+    let lon = 120.9842;
+    let locationName = "Manila, PH";
+
+    // Weather Codes Helper
+    const getWeatherIcon = (code) => {
+        const codes = {
+            0: "☀️", 1: "🌤", 2: "⛅", 3: "☁️",
+            45: "🌫", 48: "🌫",
+            51: "🌦", 53: "🌧", 55: "🌧",
+            61: "☂️", 63: "☂️", 65: "☔",
+            80: "🌦", 81: "🌦", 82: "⛈",
+            95: "⚡", 96: "⚡❄️"
+        };
+        return codes[code] || "❓";
+    };
+
+    const getWeatherText = (code) => {
+        const codes = {
+            0: "Clear", 1: "Mainly Clear", 2: "Partly Cloudy", 3: "Overcast",
+            45: "Fog", 51: "Drizzle", 53: "Moderate Rain", 61: "Slight Rain",
+            63: "Rain", 80: "Showers", 95: "Thunderstorm"
+        };
+        return codes[code] || "Variable";
+    };
+
+    try {
+        // 1. Get Location
+        if (navigator.geolocation) {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                });
+                lat = position.coords.latitude;
+                lon = position.coords.longitude;
+                locationName = "Local Weather";
+            } catch (e) { console.warn("Using default location."); }
+        }
+
+        // 2. Fetch Data (Current + 7 Day Forecast)
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (!data.current_weather) throw new Error("No weather data");
+
+        // 3. Render Current Weather
+        const { temperature, weathercode, windspeed } = data.current_weather;
+        
+        // 4. Render Forecast (Next 5 Days)
+        let forecastHTML = '<div class="forecast-list">';
+        const daily = data.daily;
+        
+        // Loop through 5 days (start at 1 to skip "today" if you prefer, or 0 for today)
+        for(let i = 0; i < 5; i++) {
+            const date = new Date(daily.time[i]);
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' }); // e.g. "Mon"
+            const max = Math.round(daily.temperature_2m_max[i]);
+            const min = Math.round(daily.temperature_2m_min[i]);
+            const icon = getWeatherIcon(daily.weathercode[i]);
+
+            forecastHTML += `
+                <div class="forecast-item">
+                    <div class="forecast-day">${dayName}</div>
+                    <div class="forecast-icon">${icon}</div>
+                    <div class="forecast-temp"><span>${max}°</span> / ${min}°</div>
+                </div>
+            `;
+        }
+        forecastHTML += '</div>';
+
+        // 5. Combine and Inject
+        container.innerHTML = `
+            <div class="weather-temp">${Math.round(temperature)}°C</div>
+            <div class="weather-desc">${getWeatherText(weathercode)} ${getWeatherIcon(weathercode)}</div>
+            <div class="weather-loc">📍 ${locationName} • 💨 ${windspeed} km/h</div>
+            
+            <div class="weather-divider"></div>
+            
+            ${forecastHTML}
+        `;
+
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p class="tiny">Weather unavailable</p>';
+    }
+}
+// ==========================================
+// 8b. NEWS WIDGET (DEV.to API)
+// ==========================================
+async function loadNews() {
+    const container = document.getElementById('news-container');
+    if (!container) return;
+
+    // We use DEV.to public API (Reliable, JSON format, No CORS issues)
+    // Fetching top 4 recent 'technology' articles
+    const API_URL = 'https://dev.to/api/articles?tag=technology&per_page=4&state=rising';
+
+    try {
+        const response = await fetch(API_URL);
+        
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.length === 0) {
+            container.innerHTML = '<p class="tiny">No news available.</p>';
+            return;
+        }
+
+        container.innerHTML = data.map(item => `
+            <div class="news-item">
+                <a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>
+                <div class="news-meta">
+                    <span class="news-date">${new Date(item.published_at).toLocaleDateString()}</span>
+                    <span class="news-author">${item.user.name}</span>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        console.error("News Load Error:", err);
+        container.innerHTML = `
+            <div style="text-align:center; padding:10px;">
+                <p class="tiny" style="color:#ff6b6b">Unable to load news.</p>
+                <button class="btn ghost" onclick="loadNews()" style="font-size:0.7rem; padding:4px 8px;">Retry</button>
+            </div>
+        `;
+    }
+}
 
 // ==========================================
 // 9. INITIALIZE
@@ -546,3 +687,5 @@ loadSkills();
 loadExperience();
 loadCertifications();
 loadProfile();
+loadWeather(); // <--- Added
+loadNews();    // <--- Added
