@@ -42,10 +42,27 @@
     .brand-logo { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: grid; place-items: center; color: white; font-weight: 800; font-size: 1.1rem; box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25); }
     .brand-text { font-weight: 800; font-size: 1.1rem; color: var(--text); letter-spacing: -0.02em; }
     
-    .nav-btn { width: 100%; background: transparent; border: 0; color: var(--muted); padding: 12px 16px; border-radius: 12px; cursor: pointer; text-align: left; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
+    .nav-btn { width: 100%; background: transparent; border: 0; color: var(--muted); padding: 12px 16px; border-radius: 12px; cursor: pointer; text-align: left; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; text-decoration: none; display: block; }
     .nav-btn:hover { background: rgba(255, 255, 255, 0.03); color: var(--text); transform: translateX(4px); }
     .nav-btn.active { background: linear-gradient(90deg, rgba(124,58,237,0.15), rgba(6,182,212,0.05)); color: white; border-left: 3px solid var(--accent); border-radius: 4px 12px 12px 4px; }
-    .nav-btn.logout { margin-top: auto; background: rgba(255, 77, 77, 0.08); color: #ff6b6b; border: 1px solid rgba(255, 77, 77, 0.1); justify-content: center; text-align: center; }
+    
+    /* NEW: Home Button (Pushes content up) */
+    .nav-btn.home {
+      margin-top: auto;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex; justify-content: center; align-items: center;
+    }
+    .nav-btn.home:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-2px); }
+
+    /* MODIFIED: Logout Button (Sits below Home) */
+    .nav-btn.logout { 
+      background: rgba(255, 77, 77, 0.08); 
+      color: #ff6b6b; 
+      border: 1px solid rgba(255, 77, 77, 0.1); 
+      display: flex; justify-content: center; align-items: center;
+    }
     .nav-btn.logout:hover { background: #ff6b6b; color: white; transform: translateY(-2px); }
 
     /* MAIN CONTENT */
@@ -166,6 +183,11 @@
     <button class="nav-btn" data-tab="experience">Experience</button>
     <button class="nav-btn" data-tab="certifications">Certifications</button>
     
+    <!-- NEW: Back to Portfolio Button -->
+    <a href="index.html" class="nav-btn home">
+      <span>Back to Portfolio</span>
+    </a>
+
     <button class="nav-btn logout" id="logoutBtn">Logout</button>
   </nav>
 
